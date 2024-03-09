@@ -4,14 +4,22 @@ let ctx = canvas.getContext("2d");
 let vcanvas = document.getElementById("vc");
 let vctx = vcanvas.getContext("2d");
 
-xMax = 150;
-zMax = 70;
+let xMax = 150;
+let zMax = 70;
 
-vMax = 12;
+let vMax = 12;
 
 function inBounds(x, z) {
 	return 0 <= x && x < xMax && 0 <= z && z < zMax;
 }
+
+let [startX, startZ] = [5, 5];
+
+canvas.onclick = e => {
+	startX = e.offsetX*xMax/canvas.width;
+	startZ = e.offsetY*zMax/canvas.height;
+	redraw();
+};
 
 let VM_dz = 5;
 let VM = [];
@@ -52,7 +60,7 @@ function v(z) {
 };
 
 function castRay(i_deg) {
-	let [x, z] = [5, 0];
+	let [x, z] = [startX, startZ];
 	let i = i_deg*Math.PI/180;
 	let p = Math.sin(i)/v(z);
 

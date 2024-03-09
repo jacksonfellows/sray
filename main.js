@@ -9,9 +9,6 @@ zMax = 70;
 
 vMax = 12;
 
-ctx.scale(canvas.width/xMax, canvas.height/zMax);
-vctx.scale(vcanvas.width/vMax, vcanvas.height/zMax);
-
 function inBounds(x, z) {
 	return 0 <= x && x < xMax && 0 <= z && z < zMax;
 }
@@ -83,11 +80,31 @@ function castRay(i_deg) {
 	ctx.restore();
 }
 
-plotVM();
+function redraw() {
+	// Set canvas sizes to match window.
+	let padding = 10;
+	canvas.width = 0.8*window.innerWidth;
+	vcanvas.width = window.innerWidth - canvas.width - padding;
+	canvas.height = window.innerHeight - padding;
+	vcanvas.height = canvas.height;
 
-console.time("casting");
-for (let i_deg = 0; i_deg < 360; i_deg += 2) {
-	ctx.strokeStyle = `hsl(${i_deg*4}, 100%, 50%)`;
-	castRay(i_deg);
+	// Re-scale canvases.
+	ctx.scale(canvas.width/xMax, canvas.height/zMax);
+	vctx.scale(vcanvas.width/vMax, vcanvas.height/zMax);
+
+
+	// Draw VM.
+	plotVM();
+
+	// Cast rays.
+	console.time("casting");
+	for (let i_deg = 0; i_deg < 360; i_deg += 2) {
+		ctx.strokeStyle = `hsl(${i_deg*4}, 100%, 50%)`;
+		castRay(i_deg);
+	}
+	console.timeEnd("casting");
 }
-console.timeEnd("casting");
+
+redraw();
+
+window.onresize = redraw;

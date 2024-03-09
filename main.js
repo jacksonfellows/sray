@@ -13,7 +13,19 @@ function inBounds(x, z) {
 	return 0 <= x && x < xMax && 0 <= z && z < zMax;
 }
 
-VM = [[0, 5], [10, 5.5], [25, 7.5], [100, 10]];
+let VM_dz = 5;
+let VM = [];
+for (let z = 0; z <= 100; z += VM_dz) {
+	VM.push([z, 5 + 0.05*z]);
+}
+
+vcanvas.onclick = e => {
+	let z = e.offsetY*zMax/vcanvas.height;
+	let v = e.offsetX*vMax/vcanvas.width;
+	let i = Math.round(z/VM_dz);
+	VM[i][1] = v;
+	redraw();
+};
 
 function plotVM() {
 	vctx.beginPath();
@@ -40,7 +52,7 @@ function v(z) {
 };
 
 function castRay(i_deg) {
-	let [x, z] = [5, 5];
+	let [x, z] = [5, 0];
 	let i = i_deg*Math.PI/180;
 	let p = Math.sin(i)/v(z);
 

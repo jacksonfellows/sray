@@ -1,16 +1,34 @@
 let canvas = document.getElementById("c");
 let ctx = canvas.getContext("2d");
 
-xMax = 200;
+let vcanvas = document.getElementById("vc");
+let vctx = vcanvas.getContext("2d");
+
+xMax = 150;
 zMax = 70;
 
+vMax = 12;
+
 ctx.scale(canvas.width/xMax, canvas.height/zMax);
+vctx.scale(vcanvas.width/vMax, vcanvas.height/zMax);
 
 function inBounds(x, z) {
 	return 0 <= x && x < xMax && 0 <= z && z < zMax;
 }
 
-VM = [[0, 5], [100, 8]];
+VM = [[0, 5], [10, 5.5], [25, 7.5], [100, 10]];
+
+function plotVM() {
+	vctx.beginPath();
+	VM.forEach(zv => {
+		vctx.lineTo(zv[1], zv[0]);
+	});
+	vctx.save();
+	vctx.resetTransform();
+	vctx.lineWidth = 1;
+	vctx.stroke();
+	vctx.restore();
+}
 
 function v(z) {
 	let [z0, v0] = VM[0];
@@ -25,17 +43,15 @@ function v(z) {
 };
 
 function castRay(i_deg) {
+	let [x, z] = [5, 5];
 	let i = i_deg*Math.PI/180;
-	let z = 5;
 	let p = Math.sin(i)/v(z);
-
-	let x = 10;
 
 	ctx.beginPath();
 
 	ctx.lineTo(x, z);
 
-	let dz = 0.001;
+	let dz = 0.01;
 
 	if (90 <= i_deg && i_deg <= 270) {
 		dz = -dz;				// Start going up.
@@ -45,8 +61,8 @@ function castRay(i_deg) {
 		z += dz;
 		let v_z = v(z);
 		let eta = Math.sqrt(1/(v_z*v_z) - p*p);
-		if (dz > 0 && (isNaN(eta) || eta < 1e-3)) {
-			// Bottomed.
+		if (isNaN(eta) || eta < 1e-3) {
+			if (dz < 0 && z < 1) break;
 			dz = -dz;
 			continue;
 		}
@@ -55,7 +71,6 @@ function castRay(i_deg) {
 			ctx.lineTo(x, z);
 		}
 		else {
-			console.log(x, z);
 			break;
 		}
 	}
@@ -68,8 +83,11 @@ function castRay(i_deg) {
 	ctx.restore();
 }
 
+plotVM();
+
 console.time("casting");
-for (let i_deg = 0; i_deg < 360; i_deg += 3) {
+for (let i_deg = 0; i_deg < 360; i_deg += 2) {
+	ctx.strokeStyle = `hsl(${i_deg*4}, 100%, 50%)`;
 	castRay(i_deg);
 }
 console.timeEnd("casting");

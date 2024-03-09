@@ -54,12 +54,13 @@ function castRay(i_deg) {
 		dz = -dz;				// Start going up.
 	}
 
-	while (1) {
+	let N = 20000;
+	for (let n = 0; n < N; n++) {
 		z += dz;
 		let v_z = v(z);
 		let eta = Math.sqrt(1/(v_z*v_z) - p*p);
 		if (isNaN(eta) || eta < 1e-3) {
-			if (dz < 0 && z < 1) break;
+			if (dz < 0 && z < 1e-3) break;
 			dz = -dz;
 			continue;
 		}

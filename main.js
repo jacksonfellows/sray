@@ -60,7 +60,7 @@ function v(z) {
 	return v0;
 };
 
-let TTs; // [[x, T], ...]
+let TTs; // [[x, T, i_deg], ...]
 
 function plotTTs() {
 	let ttMax = Math.max.apply(null, TTs.map(xT => xT[1]));
@@ -70,9 +70,10 @@ function plotTTs() {
 	TTs.sort((a, b) => a[0] - b[0]);
 
 	TTs.forEach(xT => {
+		ttctx.strokeStyle = `hsl(${xT[2]*4}, 100%, 50%)`;
 		ttctx.beginPath();
-		ttctx.lineTo(xT[0], xT[1]);
-		ttctx.lineTo(xT[0] + 0.5, xT[1] + 0.1);
+		ttctx.lineTo(xT[0] - 0.3, xT[1]);
+		ttctx.lineTo(xT[0] + 0.3, xT[1]);
 		ttctx.save();
 		ttctx.resetTransform();
 		ttctx.lineWidth = 1;
@@ -119,7 +120,7 @@ function castRay(i_deg) {
 	}
 
 	if (Math.abs(z) < 1) {
-		TTs.push([x, T]);
+		TTs.push([x, T, i_deg]);
 	}
 
 	// Make line width independent of any transformations.

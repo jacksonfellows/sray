@@ -4,6 +4,9 @@ let ctx = canvas.getContext("2d");
 let vcanvas = document.getElementById("vc");
 let vctx = vcanvas.getContext("2d");
 
+let ttcanvas = document.getElementById("ttc");
+let ttctx = ttcanvas.getContext("2d");
+
 let xMax = 150;
 let zMax = 70;
 
@@ -57,6 +60,27 @@ function v(z) {
 	return v0;
 };
 
+let TTs; // [[x, T], ...]
+
+function plotTTs() {
+	let ttMax = Math.max.apply(null, TTs.map(xT => xT[1]));
+	ttctx.scale(ttcanvas.width/xMax, -ttcanvas.height/ttMax);
+	ttctx.translate(0, -ttMax);
+
+	TTs.sort((a, b) => a[0] - b[0]);
+
+	TTs.forEach(xT => {
+		ttctx.beginPath();
+		ttctx.lineTo(xT[0], xT[1]);
+		ttctx.lineTo(xT[0] + 0.5, xT[1] + 0.1);
+		ttctx.save();
+		ttctx.resetTransform();
+		ttctx.lineWidth = 1;
+		ttctx.stroke();
+		ttctx.restore();
+	});
+}
+
 function castRay(i_deg) {
 	let [x, z] = [startX, startZ];
 	let i = i_deg*Math.PI/180;
@@ -72,7 +96,9 @@ function castRay(i_deg) {
 		dz = -dz;				// Start going up.
 	}
 
-	let N = 20000;
+	let T = 0;
+
+	let N = 100000;
 	for (let n = 0; n < N; n++) {
 		z += dz;
 		let v_z = v(z);
@@ -82,6 +108,7 @@ function castRay(i_deg) {
 			dz = -dz;
 			continue;
 		}
+		T += 1/(v_z*v_z*eta)*Math.abs(dz);
 		x += p/eta*Math.abs(dz);
 		if (inBounds(x, z)) {
 			ctx.lineTo(x, z);
@@ -89,6 +116,10 @@ function castRay(i_deg) {
 		else {
 			break;
 		}
+	}
+
+	if (Math.abs(z) < 1) {
+		TTs.push([x, T]);
 	}
 
 	// Make line width independent of any transformations.
@@ -102,26 +133,33 @@ function castRay(i_deg) {
 function redraw() {
 	// Set canvas sizes to match window.
 	let padding = 10;
+	let ttHeight = 150;
 	canvas.width = 0.8*window.innerWidth;
 	vcanvas.width = window.innerWidth - canvas.width - padding;
-	canvas.height = window.innerHeight - padding;
+	canvas.height = window.innerHeight - padding - ttHeight;
 	vcanvas.height = canvas.height;
+
+	ttcanvas.width = canvas.width;
+	ttcanvas.height = ttHeight;
 
 	// Re-scale canvases.
 	ctx.scale(canvas.width/xMax, canvas.height/zMax);
 	vctx.scale(vcanvas.width/vMax, vcanvas.height/zMax);
 
-
 	// Draw VM.
 	plotVM();
 
 	// Cast rays.
+	TTs = [];
 	console.time("casting");
-	for (let i_deg = 0; i_deg < 360; i_deg += 2) {
+	for (let i_deg = 0; i_deg < 360; i_deg += 1) {
 		ctx.strokeStyle = `hsl(${i_deg*4}, 100%, 50%)`;
 		castRay(i_deg);
 	}
 	console.timeEnd("casting");
+
+	// Plot TTs.
+	plotTTs();
 }
 
 redraw();

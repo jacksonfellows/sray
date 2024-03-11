@@ -67,8 +67,6 @@ function plotTTs() {
 	ttctx.scale(ttcanvas.width/xMax, -ttcanvas.height/ttMax);
 	ttctx.translate(0, -ttMax);
 
-	TTs.sort((a, b) => a[0] - b[0]);
-
 	TTs.forEach(xT => {
 		ttctx.strokeStyle = `hsl(${xT[2]*4}, 100%, 50%)`;
 		ttctx.beginPath();

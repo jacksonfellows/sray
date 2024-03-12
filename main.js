@@ -9,9 +9,11 @@ let vctx = vcanvas.getContext("2d");
 
 let vMax = 15;
 
+let R = 6371;
+
 canvas.onclick = e => {
 	let p = ctx.getTransform().inverse().transformPoint({x: e.offsetX, y: e.offsetY});
-	startR = Math.sqrt(p.x*p.x + p.y*p.y);
+	startR = Math.min(Math.sqrt(p.x*p.x + p.y*p.y), R);
 	startTheta = Math.atan2(p.y, p.x);
 	// console.log(p.x, p.y, startR, startTheta);
 	redraw();
@@ -38,8 +40,6 @@ function plotVM() {
 }
 
 // VM loaded from vm.js.
-
-let R = 6371;
 
 function interpVM(dr) {
 	let interp = [];

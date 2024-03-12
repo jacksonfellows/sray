@@ -204,7 +204,7 @@ function redraw() {
 	vctx.scale(vcanvas.width/vMax, -scale);
 	vctx.translate(0, -(R + 100));
 
-	for (let r of [1217.1, 3482, R]) {
+	for (let r of [1217.1, 3482, 6336, R]) {
 		ctx.beginPath();
 		ctx.arc(0, 0, r, 0, 2*Math.PI);
 		ctx.save();

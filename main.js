@@ -1,13 +1,13 @@
 let canvas = document.getElementById("c");
 let ctx = canvas.getContext("2d");
 
-// let vcanvas = document.getElementById("vc");
-// let vctx = vcanvas.getContext("2d");
+let vcanvas = document.getElementById("vc");
+let vctx = vcanvas.getContext("2d");
 
 // let ttcanvas = document.getElementById("ttc");
 // let ttctx = ttcanvas.getContext("2d");
 
-let vMax = 12;
+let vMax = 15;
 
 canvas.onclick = e => {
 	let p = ctx.getTransform().inverse().transformPoint({x: e.offsetX, y: e.offsetY});
@@ -27,8 +27,8 @@ canvas.onclick = e => {
 
 function plotVM() {
 	vctx.beginPath();
-	VM.forEach(zv => {
-		vctx.lineTo(zv[1], zv[0]);
+	VM.forEach(rv => {
+		vctx.lineTo(rv[1], rv[0]);
 	});
 	vctx.save();
 	vctx.resetTransform();
@@ -177,12 +177,17 @@ function redraw() {
 	let ttHeight = 150;
 	canvas.height = window.innerHeight - padding;
 	canvas.width = canvas.height;
+	vcanvas.height = canvas.height;
+	vcanvas.width = 200;
 
 	// Re-scale canvases.
 	let canvasSize = 2*(R + 100);
 	let scale = canvas.height/canvasSize;
 	ctx.scale(scale, -scale);
 	ctx.translate(R + 100, -(R + 100));
+
+	vctx.scale(vcanvas.width/vMax, -scale);
+	vctx.translate(0, -(R + 100));
 
 	for (let r of [1217.1, 3482, R]) {
 		ctx.beginPath();
@@ -194,10 +199,8 @@ function redraw() {
 		ctx.restore();
 	}
 
-	// vctx.scale(vcanvas.width/vMax, vcanvas.height/zMax);
-
 	// Draw VM.
-	// plotVM();
+	plotVM();
 
 	// Cast rays.
 	// TTs = [];

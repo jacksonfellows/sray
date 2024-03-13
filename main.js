@@ -103,11 +103,16 @@ function lineToPolar(r, theta) {
 }
 
 
-let startR = R - 600;
+let startR = R;
 let startTheta = 150*Math.PI/180;
 
-function castRay(i_deg) {
-	let [r, theta] = [startR, startTheta];
+let MAX_REFLECTIONS = 1;
+
+function castRay(r, theta, i_deg, dr, nReflections) {
+	if (nReflections > MAX_REFLECTIONS) return;
+
+	let reflections = [];
+
 	let i = i_deg*Math.PI/180;
 	let p = r*Math.sin(i)/v(r);
 
@@ -116,8 +121,6 @@ function castRay(i_deg) {
 	lineToPolar(r, theta);
 
 	let T = 0;
-
-	let dr = -1;
 
 	if (Math.abs(i_deg) > 90) {
 		dr = -dr;
@@ -139,6 +142,18 @@ function castRay(i_deg) {
 			dr = -dr;
 			theta = theta + Math.PI;
 			continue;
+		}
+
+		if (r <= R && r + dr > R) {
+			reflections.push([r, theta, i_deg, -dr]);
+		}
+
+		if ((r >= 3482 && r + dr < 3482) || (r <= 3482 && r + dr > 3482)) {
+			reflections.push([r, theta, i_deg, -dr]);
+		}
+
+		if ((r >= 1217.1 && r + dr < 1217.1) || (r <= 1217.1 && r + dr > 1217.1)) {
+			reflections.push([r, theta, i_deg, -dr]);
 		}
 
 		let k1 = p/(r*Math.sqrt(Math.pow(r/v(r), 2) - p*p));
@@ -184,6 +199,8 @@ function castRay(i_deg) {
 	ctx.lineWidth = 1;
 	ctx.stroke();
 	ctx.restore();
+
+	reflections.forEach(x => castRay(...x, nReflections + 1));
 }
 
 function redraw() {
@@ -220,11 +237,12 @@ function redraw() {
 	// Cast rays.
 	// TTs = [];
 	console.time("casting");
-	// // for (let i_deg = -179; i_deg <= 180; i_deg += 1) {
-	for (let i_deg = -178; i_deg <= 180; i_deg += 2) {
+	// for (let i_deg = -179; i_deg <= 180; i_deg += 1) {
+	// for (let i_deg = -178; i_deg <= 180; i_deg += 2) {
+	for (let i_deg = -25; i_deg <= 35; i_deg += 1) {
 		// console.log(i_deg);
 		ctx.strokeStyle = getRayColor(i_deg);
-		castRay(i_deg);
+		castRay(startR, startTheta, i_deg, -1, 0);
 	}
 	console.timeEnd("casting");
 

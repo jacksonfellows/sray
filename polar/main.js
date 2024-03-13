@@ -4,8 +4,8 @@ let ctx = canvas.getContext("2d");
 let vcanvas = document.getElementById("vc");
 let vctx = vcanvas.getContext("2d");
 
-// let ttcanvas = document.getElementById("ttc");
-// let ttctx = ttcanvas.getContext("2d");
+let ttcanvas = document.getElementById("ttc");
+let ttctx = ttcanvas.getContext("2d");
 
 let vMax = 15;
 
@@ -76,22 +76,22 @@ function getRayColor(i_deg) {
 	return C[(i_deg + 180) % 360];
 }
 
-let TTs; // [[x, T, i_deg], ...]
+let TTs; // [[delta, T, i_deg], ...]
 
 function plotTTs() {
 	let ttMax = Math.max.apply(null, TTs.map(xT => xT[1]));
-	ttctx.scale(ttcanvas.width/xMax, -ttcanvas.height/ttMax);
+	let deltaMax = 180;
+	ttctx.scale(ttcanvas.width/deltaMax, -ttcanvas.height/ttMax);
 	ttctx.translate(0, -ttMax);
 
 	TTs.forEach(xT => {
-		ttctx.strokeStyle = getRayColor(xT[2]);
+		ttctx.fillStyle = getRayColor(xT[2]);
 		ttctx.beginPath();
-		ttctx.lineTo(xT[0] - 0.3, xT[1]);
-		ttctx.lineTo(xT[0] + 0.3, xT[1]);
+		ttctx.arc(xT[0], xT[1], 1.3, 0, 2*Math.PI);
 		ttctx.save();
 		ttctx.resetTransform();
 		ttctx.lineWidth = 1;
-		ttctx.stroke();
+		ttctx.fill();
 		ttctx.restore();
 	});
 }
@@ -106,9 +106,9 @@ function lineToPolar(r, theta) {
 let startR = R;
 let startTheta = 150*Math.PI/180;
 
-let MAX_REFLECTIONS = 1;
+let MAX_REFLECTIONS = 3;
 
-function castRay(r, theta, i_deg, dr, nReflections) {
+function castRay(r, theta, i_deg, dr, nReflections, T) {
 	if (nReflections > MAX_REFLECTIONS) return;
 
 	let reflections = [];
@@ -119,8 +119,6 @@ function castRay(r, theta, i_deg, dr, nReflections) {
 	ctx.beginPath();
 
 	lineToPolar(r, theta);
-
-	let T = 0;
 
 	if (Math.abs(i_deg) > 90) {
 		dr = -dr;
@@ -156,11 +154,24 @@ function castRay(r, theta, i_deg, dr, nReflections) {
 			reflections.push([r, theta, i_deg, -dr]);
 		}
 
-		let k1 = p/(r*Math.sqrt(Math.pow(r/v(r), 2) - p*p));
 		let r2 = r + dr/2;
-		let k2 = p/(r2*Math.sqrt(Math.pow(r2/v(r2), 2) - p*p));
 		let r3 = r + dr;
-		let k3 = p/(r3*Math.sqrt(Math.pow(r3/v(r3), 2) - p*p));
+
+		let xi1_2 = Math.pow(r/v(r), 2);
+		let xi2_2 = Math.pow(r2/v(r2), 2);
+		let xi3_2 = Math.pow(r3/v(r3), 2);
+
+		let d1 = r*Math.sqrt(xi1_2 - p*p);
+		let d2 = r*Math.sqrt(xi2_2 - p*p);
+		let d3 = r*Math.sqrt(xi3_2 - p*p);
+
+		let k1 = p/d1;
+		let k2 = p/d2;
+		let k3 = p/d3;
+
+		let l1 = xi1_2/d1;
+		let l2 = xi2_2/d2;
+		let l3 = xi3_2/d3;
 
 		if (isNaN(k1) || isNaN(k2) || isNaN(k3)) {
 			// console.log("bottomed");
@@ -180,18 +191,15 @@ function castRay(r, theta, i_deg, dr, nReflections) {
 
 		// Simpson's rule.
 		theta += Math.abs(dr)/6*(k1 + 4*k2 + k3);
+		T += Math.abs(dr)/6*(l1 + 4*l2 + l3);
 		r += dr;
-
-		// let dtheta_dr = p/d;
-		// let dT_dr = xi*xi/d;
-		// theta += dtheta_dr*Math.abs(dr);
-		// T += dT_dr*Math.abs(dr);
-
 
 		lineToPolar(r, theta);
 	}
 
-	// console.log(startR, r, startTheta, theta, T);
+	if (T != Infinity) {
+		TTs.push([Math.abs(startTheta - theta)*180/Math.PI, T, i_deg]);
+	}
 
 	// Make line width independent of any transformations.
 	ctx.save();
@@ -200,7 +208,7 @@ function castRay(r, theta, i_deg, dr, nReflections) {
 	ctx.stroke();
 	ctx.restore();
 
-	reflections.forEach(x => castRay(...x, nReflections + 1));
+	reflections.forEach(x => castRay(...x, nReflections + 1, T));
 }
 
 function redraw() {
@@ -211,6 +219,9 @@ function redraw() {
 	canvas.width = canvas.height;
 	vcanvas.height = canvas.height;
 	vcanvas.width = 200;
+
+	ttcanvas.width = 400;
+	ttcanvas.height = canvas.height;
 
 	// Re-scale canvases.
 	let canvasSize = 2*(R + 100);
@@ -235,19 +246,18 @@ function redraw() {
 	plotVM();
 
 	// Cast rays.
-	// TTs = [];
+	TTs = [];
 	console.time("casting");
-	// for (let i_deg = -179; i_deg <= 180; i_deg += 1) {
+	for (let i_deg = -179; i_deg <= 180; i_deg += 1) {
 	// for (let i_deg = -178; i_deg <= 180; i_deg += 2) {
-	for (let i_deg = -25; i_deg <= 35; i_deg += 1) {
 		// console.log(i_deg);
 		ctx.strokeStyle = getRayColor(i_deg);
-		castRay(startR, startTheta, i_deg, -1, 0);
+		castRay(startR, startTheta, i_deg, -1, 0, 0);
 	}
 	console.timeEnd("casting");
 
 	// Plot TTs.
-	// plotTTs();
+	plotTTs();
 }
 
 redraw();

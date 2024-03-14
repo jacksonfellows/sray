@@ -106,7 +106,7 @@ function lineToPolar(r, theta) {
 let startR = R;
 let startTheta = 150*Math.PI/180;
 
-let MAX_REFLECTIONS = 3;
+let MAX_REFLECTIONS = 1;
 
 function castRay(r, theta, i_deg, dr, nReflections, T) {
 	if (nReflections > MAX_REFLECTIONS) return;
@@ -120,13 +120,20 @@ function castRay(r, theta, i_deg, dr, nReflections, T) {
 
 	lineToPolar(r, theta);
 
-	if (Math.abs(i_deg) > 90) {
-		dr = -dr;
-	}
-
 	let N = 10*7000;
 	for (let n = 0; n < N; n++) {
-		// console.log("r=", r, "theta=", theta);
+
+		if (r <= R && r + dr > R) {
+			reflections.push([r, theta, i_deg, -dr]);
+		}
+
+		if ((r >= 3482 && r + dr < 3482) || (r <= 3482 && r + dr > 3482)) {
+			reflections.push([r, theta, i_deg, -dr]);
+		}
+
+		if ((r >= 1217.1 && r + dr < 1217.1) || (r <= 1217.1 && r + dr > 1217.1)) {
+			reflections.push([r, theta, i_deg, -dr]);
+		}
 
 		if (r > R) {
 			// console.log(r);
@@ -140,18 +147,6 @@ function castRay(r, theta, i_deg, dr, nReflections, T) {
 			dr = -dr;
 			theta = theta + Math.PI;
 			continue;
-		}
-
-		if (r <= R && r + dr > R) {
-			reflections.push([r, theta, i_deg, -dr]);
-		}
-
-		if ((r >= 3482 && r + dr < 3482) || (r <= 3482 && r + dr > 3482)) {
-			reflections.push([r, theta, i_deg, -dr]);
-		}
-
-		if ((r >= 1217.1 && r + dr < 1217.1) || (r <= 1217.1 && r + dr > 1217.1)) {
-			reflections.push([r, theta, i_deg, -dr]);
 		}
 
 		let r2 = r + dr/2;
@@ -174,19 +169,8 @@ function castRay(r, theta, i_deg, dr, nReflections, T) {
 		let l3 = xi3_2/d3;
 
 		if (isNaN(k1) || isNaN(k2) || isNaN(k3)) {
-			// console.log("bottomed");
-			// console.log(k1, k2, k3);
-			// console.log(r3);
-			// console.log(Math.pow(r/v(r), 2) - p*p);
-			// console.log(Math.pow(r2/v(r2), 2) - p*p);
-			// console.log(Math.pow(r3/v(r3), 2) - p*p);
-			// if (dr > 0 && Math.abs(R - r) < dr) {
-			//	break;
-			// }
 			dr = -dr;
-			// console.log(r);
 			continue;
-			// break;
 		}
 
 		// Simpson's rule.
@@ -248,11 +232,12 @@ function redraw() {
 	// Cast rays.
 	TTs = [];
 	console.time("casting");
-	for (let i_deg = -179; i_deg <= 180; i_deg += 1) {
+	// for (let i_deg = -179; i_deg <= 180; i_deg += 1) {
+	for (let i_deg = -90; i_deg <= 90; i_deg += 1) {
 	// for (let i_deg = -178; i_deg <= 180; i_deg += 2) {
 		// console.log(i_deg);
 		ctx.strokeStyle = getRayColor(i_deg);
-		castRay(startR, startTheta, i_deg, -1, 0, 0);
+		castRay(startR, startTheta, i_deg, Math.abs(i_deg) > 90 ? 1 : -1, 0, 0);
 	}
 	console.timeEnd("casting");
 

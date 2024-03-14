@@ -145,7 +145,7 @@ function castRay(i_deg) {
 		let l3 = 1/(v3_2*eta3);
 
 		if (isNaN(k1) || isNaN(k2) || isNaN(k3)) {
-			if (z3 <= 0) break;
+			if (z3 <= 0 || z3 >= zMax) break;
 			dz = -dz;
 			continue;
 		}

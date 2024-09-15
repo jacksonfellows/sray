@@ -233,8 +233,8 @@ function redraw() {
 	TTs = [];
 	console.time("casting");
 	// for (let i_deg = -179; i_deg <= 180; i_deg += 1) {
-	for (let i_deg = -90; i_deg <= 90; i_deg += 1) {
-	// for (let i_deg = -178; i_deg <= 180; i_deg += 2) {
+	// for (let i_deg = -90; i_deg <= 90; i_deg += 1) {
+	for (let i_deg = -178; i_deg <= 180; i_deg += 2) {
 		// console.log(i_deg);
 		ctx.strokeStyle = getRayColor(i_deg);
 		castRay(startR, startTheta, i_deg, Math.abs(i_deg) > 90 ? 1 : -1, 0, 0);
